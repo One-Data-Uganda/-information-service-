@@ -1,5 +1,15 @@
 # coding: utf-8
-from sqlalchemy import CHAR, Column, Date, DateTime, Float, ForeignKey, Integer, Text
+from sqlalchemy import (
+    CHAR,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy_serializer import SerializerMixin
@@ -12,7 +22,10 @@ metadata = Base.metadata
 class Region(Base, SerializerMixin):
     __tablename__ = "region"
 
-    id = Column(Text, primary_key=True)
+    id = Column(
+        UUID(as_uuid=True), server_default=text("gen_random_uuid()"), primary_key=True
+    )
+    name = Column(Text)
 
     subregions = relationship("SubRegion")
 
@@ -20,10 +33,11 @@ class Region(Base, SerializerMixin):
 class SubRegion(Base, SerializerMixin):
     __tablename__ = "sub_region"
 
-    id = Column(Text, primary_key=True)
-    subregion_id = Column(
-        ForeignKey("region.id", ondelete="CASCADE", onupdate="CASCADE")
+    id = Column(
+        UUID(as_uuid=True), server_default=text("gen_random_uuid()"), primary_key=True
     )
+    name = Column(Text)
+    region_id = Column(ForeignKey("region.id", ondelete="CASCADE", onupdate="CASCADE"))
 
     countries = relationship("Country")
 
@@ -40,10 +54,11 @@ class Country(Base, SerializerMixin):
     other_names = Column(Text)
     motto = Column(Text)
     date_of_independence = Column(Date)
-    introduction = Column(Text)
+    description = Column(Text)
     location = Column(Text)
     neighbours = Column(Text)
     capital_city = Column(Text)
+    political_system = Column(Text)
     population = Column(Float(53))
     languages = Column(Text)
     facts_and_figures = Column(Text)

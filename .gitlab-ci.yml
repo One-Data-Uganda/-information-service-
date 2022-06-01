@@ -3,11 +3,6 @@ image: docker:19.03
 services:
   - docker:19.03-dind
 
-cache:
-  key: easy-portal-cache
-  paths:
-    - "/root/.cache/pip"
-
 variables:
   CONTAINER_IMAGE: $CI_REGISTRY_IMAGE
   DOCKER_DRIVER: overlay2
@@ -17,7 +12,6 @@ variables:
 
 stages:
   - build
-  - test
   - deploy
 
 before_script:
@@ -30,31 +24,11 @@ build:
     - docker pull $CONTAINER_IMAGE:latest || true
     - docker build
         --cache-from $CONTAINER_IMAGE:latest
-        --pull
         --tag $CONTAINER_IMAGE:$CI_COMMIT_SHA
         --build-arg BUILDKIT_INLINE_CACHE=1
         "."
   after_script:
     - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHA
-  only:
-    - master
-
-test:
-  stage: test
-
-  variables:
-      POSTGRES_SERVER: "pg_${CI_COMMIT_SHA}"
-      POSTGRES_DB: "nice_marmot"
-      POSTGRES_USER: "runner"
-      POSTGRES_PASSWORD: "marmot"
-
-  script:
-    - docker run -d -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD --name pg_${CI_COMMIT_SHA} postgres:13.2-alpine
-    - docker pull $CONTAINER_IMAGE:$CI_COMMIT_SHA
-    - docker run --rm -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_SERVER --link pg_${CI_COMMIT_SHA} --entrypoint sh $CONTAINER_IMAGE:$CI_COMMIT_SHA test-start.sh
-  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
-  only:
-    - branches
 
 release:
   stage: deploy
@@ -63,13 +37,4 @@ release:
     - docker tag $CONTAINER_IMAGE:$CI_COMMIT_SHA $CONTAINER_IMAGE:latest
     - docker push $CONTAINER_IMAGE:latest
   only:
-    - master
-
-release:tag:
-  stage: deploy
-  script:
-    - docker pull $CONTAINER_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CONTAINER_IMAGE:$CI_COMMIT_SHA $CONTAINER_IMAGE:$CI_COMMIT_TAG
-    - docker push $CONTAINER_IMAGE:$CI_COMMIT_TAG
-  only:
-    - tags
+    - main

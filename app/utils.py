@@ -1,19 +1,15 @@
 import base64
 import io
-import logging
 import os
 import uuid
 
 import numpy as np
 import phonenumbers
 from PIL import Image
-from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
 from app import crud, schemas
 from app.core.config import settings
 from app.core.logger import log
-from app.db.session import SessionLocal
-from app.models import Setting
 
 max_tries = 60 * 5  # 5 minutes
 wait_seconds = 15
@@ -32,32 +28,6 @@ def uuid_to_hex(uuid_string: str) -> str:
     """
 
     return uuid.UUID(uuid_string).hex
-
-
-def getSetting(key):
-    try:
-        db = SessionLocal()
-        return db.query(Setting).get(key).value
-    except Exception:
-        return None
-
-
-@retry(
-    stop=stop_after_attempt(max_tries),
-    wait=wait_fixed(wait_seconds),
-    before=before_log(log, logging.INFO),
-    after=after_log(log, logging.WARN),
-)
-def setSetting(key, value):
-    try:
-        db = SessionLocal()
-        setting = db.query(Setting).get(key)
-        setting.value = value
-        db.commit()
-    except Exception as e:
-        log.error(e, exc_info=True)
-        db.rollback()
-        raise e
 
 
 def uploadPhoto(f, name):
