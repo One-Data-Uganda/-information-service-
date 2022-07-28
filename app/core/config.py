@@ -89,11 +89,11 @@ class Settings(BaseSettings):
             path=f"/{values.get('CELERY_BROKER_DB')}",
         )
 
-    POSTGRES_SERVER: str = "db"
-    POSTGRES_USER: str = "easyportal"
-    POSTGRES_PASSWORD: str = "easyportal"
+    POSTGRES_SERVER: str = "information-db"
+    POSTGRES_USER: str = "one_information"
+    POSTGRES_PASSWORD: str = "one_information"
     POSTGRES_PORT_5432_TCP_PORT: str = "5432"
-    POSTGRES_DB: str = "information_db"
+    POSTGRES_DB: str = "one_information"
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
